@@ -1,14 +1,13 @@
 import { Card } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
-import { CreditCard, Wallet, UserIcon, LogOut } from "lucide-react";
+import { CreditCard, Wallet, UserIcon, LogOut, Check, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/components/AuthProvider";
 import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,7 +44,7 @@ const Settings = () => {
 
   const pricePerSite = 15;
   const totalHT = siteCount * pricePerSite;
-  const totalTTC = totalHT * 1.2; // TVA 20%
+  const totalTTC = totalHT * 1.2;
 
   const handlePayment = () => {
     if (!selectedPaymentMethod) {
@@ -66,25 +65,32 @@ const Settings = () => {
     toast.success("Paiement simulé avec succès !");
   };
 
+  const plans = [
+    { name: "Starter", sites: 3, price: 45, features: ["3 sites", "Support email", "Rapports mensuels"] },
+    { name: "Pro", sites: 10, price: 120, features: ["10 sites", "Support prioritaire", "Rapports hebdomadaires", "API access"], popular: true },
+    { name: "Enterprise", sites: 50, price: 450, features: ["50 sites", "Support dédié", "Rapports temps réel", "API illimité", "SLA garanti"] },
+  ];
+
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between animate-fade-in">
         <div>
-          <h1 className="text-2xl font-bold">Souscription</h1>
-          <p className="text-muted-foreground">
-            Gérez votre abonnement
+          <h1 className="text-2xl font-bold text-foreground">Souscription</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Gérez votre abonnement et vos paiements
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm">Global Secure SARL</span>
+        <div className="flex items-center gap-4">
+          <span className="text-sm font-medium text-muted-foreground">Global Secure SARL</span>
           <DropdownMenu>
             <DropdownMenuTrigger className="focus:outline-none">
-              <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors">
-                <UserIcon className="w-4 h-4 text-muted-foreground" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center hover:shadow-lg hover:shadow-primary/20 transition-all duration-300">
+                <UserIcon className="w-5 h-5 text-primary-foreground" />
               </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600 focus:bg-red-50">
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={handleLogout} className="text-danger focus:text-danger focus:bg-danger/10">
                 <LogOut className="w-4 h-4 mr-2" />
                 Se déconnecter
               </DropdownMenuItem>
@@ -93,124 +99,180 @@ const Settings = () => {
         </div>
       </div>
 
-      <div className="grid gap-4">
-        <Card className="p-6 glass">
-          <h2 className="text-lg font-semibold mb-4">Abonnement et Facturation</h2>
-          <div className="space-y-6">
-            <div className="bg-muted/50 p-4 rounded-lg">
-              <h3 className="font-medium mb-2">Résumé de l'abonnement</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span>Nombre de sites</span>
-                  <span>{siteCount}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Prix par site / mois</span>
-                  <span>{pricePerSite}€ HT</span>
-                </div>
-                <div className="flex justify-between font-medium">
-                  <span>Total HT / mois</span>
-                  <span>{totalHT}€</span>
-                </div>
-                <div className="flex justify-between text-sm text-muted-foreground">
-                  <span>TVA (20%)</span>
-                  <span>{(totalTTC - totalHT).toFixed(2)}€</span>
-                </div>
-                <div className="flex justify-between font-semibold text-lg pt-2 border-t">
-                  <span>Total TTC / mois</span>
-                  <span>{totalTTC.toFixed(2)}€</span>
-                </div>
+      {/* Plans */}
+      <div className="grid md:grid-cols-3 gap-4 stagger-children">
+        {plans.map((plan) => (
+          <Card 
+            key={plan.name} 
+            className={cn(
+              "p-6 card-interactive relative overflow-hidden",
+              plan.popular && "border-accent ring-2 ring-accent/20"
+            )}
+          >
+            {plan.popular && (
+              <div className="absolute top-4 right-4">
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-accent text-accent-foreground flex items-center gap-1">
+                  <Sparkles className="w-3 h-3" />
+                  Populaire
+                </span>
               </div>
+            )}
+            <h3 className="text-lg font-semibold text-foreground">{plan.name}</h3>
+            <div className="mt-4 mb-6">
+              <span className="text-4xl font-bold text-foreground">{plan.price}€</span>
+              <span className="text-muted-foreground">/mois</span>
             </div>
+            <ul className="space-y-3 mb-6">
+              {plan.features.map((feature, i) => (
+                <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Check className="w-4 h-4 text-success" />
+                  {feature}
+                </li>
+              ))}
+            </ul>
+            <Button 
+              className={cn(
+                "w-full",
+                plan.popular ? "bg-accent hover:bg-accent/90 text-accent-foreground" : "bg-primary hover:bg-primary/90"
+              )}
+            >
+              Choisir ce plan
+            </Button>
+          </Card>
+        ))}
+      </div>
 
-            <div className="space-y-4">
-              <h3 className="font-medium">Méthode de paiement</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  onClick={() => setSelectedPaymentMethod("card")}
-                  className={`p-4 border rounded-lg flex items-center gap-3 hover:border-primary transition-colors ${
-                    selectedPaymentMethod === "card" ? "border-primary bg-primary/5" : ""
-                  }`}
-                >
-                  <CreditCard className="w-5 h-5" />
-                  <span>Carte bancaire</span>
-                </button>
-                <button
-                  onClick={() => setSelectedPaymentMethod("paypal")}
-                  className={`p-4 border rounded-lg flex items-center gap-3 hover:border-primary transition-colors ${
-                    selectedPaymentMethod === "paypal" ? "border-primary bg-primary/5" : ""
-                  }`}
-                >
-                  <Wallet className="w-5 h-5" />
-                  <span>PayPal</span>
-                </button>
+      {/* Billing Summary */}
+      <Card className="p-6 card-modern animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+        <h2 className="text-lg font-semibold mb-6">Récapitulatif de facturation</h2>
+        <div className="grid md:grid-cols-2 gap-8">
+          <div className="space-y-4">
+            <div className="p-4 rounded-xl bg-muted/50">
+              <div className="flex justify-between mb-2">
+                <span className="text-muted-foreground">Nombre de sites</span>
+                <span className="font-medium">{siteCount}</span>
               </div>
-
-              {selectedPaymentMethod === "card" && (
-                <div className="space-y-4 border rounded-lg p-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="cardNumber">Numéro de carte</Label>
-                    <Input
-                      id="cardNumber"
-                      placeholder="4242 4242 4242 4242"
-                      value={cardInfo.number}
-                      onChange={(e) => setCardInfo({...cardInfo, number: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="cardName">Nom sur la carte</Label>
-                    <Input
-                      id="cardName"
-                      placeholder="JOHN DOE"
-                      value={cardInfo.name}
-                      onChange={(e) => setCardInfo({...cardInfo, name: e.target.value})}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="cardExpiry">Date d'expiration</Label>
-                      <Input
-                        id="cardExpiry"
-                        placeholder="MM/AA"
-                        value={cardInfo.expiry}
-                        onChange={(e) => setCardInfo({...cardInfo, expiry: e.target.value})}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="cardCVC">CVC</Label>
-                      <Input
-                        id="cardCVC"
-                        placeholder="123"
-                        value={cardInfo.cvc}
-                        onChange={(e) => setCardInfo({...cardInfo, cvc: e.target.value})}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {selectedPaymentMethod === "paypal" && (
-                <div className="space-y-4 border rounded-lg p-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="paypalEmail">Email PayPal</Label>
-                    <Input
-                      id="paypalEmail"
-                      type="email"
-                      placeholder="john.doe@example.com"
-                      value={paypalInfo.email}
-                      onChange={(e) => setPaypalInfo({...paypalInfo, email: e.target.value})}
-                    />
-                  </div>
-                </div>
-              )}
-
-              <Button onClick={handlePayment} className="w-full">
-                Payer {totalTTC.toFixed(2)}€
-              </Button>
+              <div className="flex justify-between mb-2">
+                <span className="text-muted-foreground">Prix unitaire</span>
+                <span className="font-medium">{pricePerSite}€ HT</span>
+              </div>
+              <div className="flex justify-between mb-2 pt-2 border-t border-border/50">
+                <span className="text-muted-foreground">Total HT</span>
+                <span className="font-medium">{totalHT}€</span>
+              </div>
+              <div className="flex justify-between mb-2">
+                <span className="text-muted-foreground">TVA (20%)</span>
+                <span className="font-medium">{(totalTTC - totalHT).toFixed(2)}€</span>
+              </div>
+              <div className="flex justify-between pt-2 border-t border-border/50">
+                <span className="font-semibold text-foreground">Total TTC</span>
+                <span className="font-bold text-xl text-primary">{totalTTC.toFixed(2)}€</span>
+              </div>
             </div>
           </div>
-        </Card>
-      </div>
+
+          <div className="space-y-4">
+            <h3 className="font-medium text-foreground">Méthode de paiement</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setSelectedPaymentMethod("card")}
+                className={cn(
+                  "p-4 rounded-xl border-2 flex items-center gap-3 transition-all duration-200",
+                  selectedPaymentMethod === "card" 
+                    ? "border-primary bg-primary/5" 
+                    : "border-border/50 hover:border-primary/50"
+                )}
+              >
+                <CreditCard className="w-5 h-5 text-primary" />
+                <span className="font-medium">Carte bancaire</span>
+              </button>
+              <button
+                onClick={() => setSelectedPaymentMethod("paypal")}
+                className={cn(
+                  "p-4 rounded-xl border-2 flex items-center gap-3 transition-all duration-200",
+                  selectedPaymentMethod === "paypal" 
+                    ? "border-primary bg-primary/5" 
+                    : "border-border/50 hover:border-primary/50"
+                )}
+              >
+                <Wallet className="w-5 h-5 text-primary" />
+                <span className="font-medium">PayPal</span>
+              </button>
+            </div>
+
+            {selectedPaymentMethod === "card" && (
+              <div className="space-y-4 p-4 rounded-xl bg-muted/30 animate-fade-in">
+                <div className="space-y-2">
+                  <Label htmlFor="cardNumber">Numéro de carte</Label>
+                  <Input
+                    id="cardNumber"
+                    placeholder="4242 4242 4242 4242"
+                    className="bg-background rounded-xl"
+                    value={cardInfo.number}
+                    onChange={(e) => setCardInfo({...cardInfo, number: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="cardName">Nom sur la carte</Label>
+                  <Input
+                    id="cardName"
+                    placeholder="JOHN DOE"
+                    className="bg-background rounded-xl"
+                    value={cardInfo.name}
+                    onChange={(e) => setCardInfo({...cardInfo, name: e.target.value})}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="cardExpiry">Date d'expiration</Label>
+                    <Input
+                      id="cardExpiry"
+                      placeholder="MM/AA"
+                      className="bg-background rounded-xl"
+                      value={cardInfo.expiry}
+                      onChange={(e) => setCardInfo({...cardInfo, expiry: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cardCVC">CVC</Label>
+                    <Input
+                      id="cardCVC"
+                      placeholder="123"
+                      className="bg-background rounded-xl"
+                      value={cardInfo.cvc}
+                      onChange={(e) => setCardInfo({...cardInfo, cvc: e.target.value})}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {selectedPaymentMethod === "paypal" && (
+              <div className="space-y-4 p-4 rounded-xl bg-muted/30 animate-fade-in">
+                <div className="space-y-2">
+                  <Label htmlFor="paypalEmail">Email PayPal</Label>
+                  <Input
+                    id="paypalEmail"
+                    type="email"
+                    placeholder="john.doe@example.com"
+                    className="bg-background rounded-xl"
+                    value={paypalInfo.email}
+                    onChange={(e) => setPaypalInfo({...paypalInfo, email: e.target.value})}
+                  />
+                </div>
+              </div>
+            )}
+
+            <Button 
+              onClick={handlePayment} 
+              className="w-full bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all duration-300 hover:-translate-y-0.5"
+              size="lg"
+            >
+              Payer {totalTTC.toFixed(2)}€
+            </Button>
+          </div>
+        </div>
+      </Card>
     </div>
   );
 };

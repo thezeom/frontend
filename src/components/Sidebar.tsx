@@ -1,8 +1,9 @@
 
 import { useState } from "react";
-import { Menu, Home, Users, Monitor, Bell, Settings, User } from "lucide-react";
+import { Menu, Home, Users, Monitor, Bell, Settings, User, ChevronLeft } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import vigileosLogo from "@/assets/vigileos-logo.png";
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -23,23 +24,36 @@ export const Sidebar = ({ isCollapsed, onCollapse }: SidebarProps) => {
 
   return (
     <aside className={cn(
-      "fixed left-0 top-0 h-screen bg-white border-r border-border/50 transition-all duration-300",
+      "fixed left-0 top-0 h-screen bg-[#3d4f5f] transition-all duration-300 ease-in-out z-50",
       isCollapsed ? "w-20" : "w-64"
     )}>
-      <div className="flex items-center gap-3 p-4 border-b border-border/50">
+      <div className="flex items-center justify-between p-4 border-b border-white/10">
+        <div className={cn(
+          "flex items-center gap-3 overflow-hidden transition-all duration-300",
+          isCollapsed ? "w-0 opacity-0" : "w-full opacity-100"
+        )}>
+          <img 
+            src={vigileosLogo} 
+            alt="Vigileos PRO" 
+            className="h-8 w-auto"
+          />
+        </div>
         <button 
           onClick={() => onCollapse(!isCollapsed)} 
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          className={cn(
+            "p-2 hover:bg-white/10 rounded-xl transition-all duration-300 text-white/80 hover:text-white",
+            isCollapsed && "mx-auto"
+          )}
         >
-          <Menu size={20} />
+          <ChevronLeft className={cn(
+            "w-5 h-5 transition-transform duration-300",
+            isCollapsed && "rotate-180"
+          )} />
         </button>
-        {!isCollapsed && (
-          <h1 className="text-xl font-bold text-[#0e3175]">Vigileos</h1>
-        )}
       </div>
       
-      <nav className="p-3 space-y-1">
-        {links.map((link) => {
+      <nav className="p-3 space-y-1 mt-2">
+        {links.map((link, index) => {
           const isActive = location.pathname === link.path;
           const Icon = link.icon;
           
@@ -48,18 +62,39 @@ export const Sidebar = ({ isCollapsed, onCollapse }: SidebarProps) => {
               key={link.path}
               to={link.path}
               className={cn(
-                "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors",
+                "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group relative",
                 isActive 
-                  ? "bg-[#0e3175] text-white" 
-                  : "hover:bg-gray-100"
+                  ? "bg-accent text-accent-foreground shadow-lg shadow-accent/30" 
+                  : "text-white/70 hover:bg-white/10 hover:text-white"
               )}
+              style={{ animationDelay: `${index * 50}ms` }}
             >
-              <Icon size={20} />
-              {!isCollapsed && <span>{link.name}</span>}
+              <Icon className={cn(
+                "w-5 h-5 transition-transform duration-200",
+                !isActive && "group-hover:scale-110"
+              )} />
+              <span className={cn(
+                "font-medium transition-all duration-300 whitespace-nowrap",
+                isCollapsed ? "opacity-0 w-0" : "opacity-100"
+              )}>
+                {link.name}
+              </span>
+              {isActive && (
+                <div className="absolute right-2 w-1.5 h-1.5 rounded-full bg-white" />
+              )}
             </Link>
           );
         })}
       </nav>
+      
+      {!isCollapsed && (
+        <div className="absolute bottom-6 left-4 right-4">
+          <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+            <p className="text-xs text-white/50 mb-1">Version</p>
+            <p className="text-sm font-medium text-white/80">PRO v2.0.1</p>
+          </div>
+        </div>
+      )}
     </aside>
   );
 };
