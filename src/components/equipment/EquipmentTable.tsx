@@ -24,40 +24,42 @@ export const EquipmentTable = ({ equipment }: EquipmentTableProps) => {
   return (
     <Table>
       <TableHeader>
-        <TableRow>
-          <TableHead>Équipement</TableHead>
-          <TableHead>Type</TableHead>
-          <TableHead>Site</TableHead>
-          <TableHead>Statut</TableHead>
-          <TableHead>IP</TableHead>
-          <TableHead>Dernière maintenance</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
+        <TableRow className="bg-muted/30 hover:bg-muted/30">
+          <TableHead className="font-semibold text-foreground">Équipement</TableHead>
+          <TableHead className="font-semibold text-foreground">Type</TableHead>
+          <TableHead className="font-semibold text-foreground">Site</TableHead>
+          <TableHead className="font-semibold text-foreground">Statut</TableHead>
+          <TableHead className="font-semibold text-foreground">IP</TableHead>
+          <TableHead className="font-semibold text-foreground">Maintenance</TableHead>
+          <TableHead className="text-right font-semibold text-foreground">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {equipment.map((item) => (
-          <TableRow key={item.id}>
+          <TableRow key={item.id} className="hover:bg-muted/30 transition-colors">
             <TableCell className="font-medium">
-              <div className="flex items-center gap-2">
-                <EquipmentIcon type={item.type} />
-                {item.name}
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <EquipmentIcon type={item.type} />
+                </div>
+                <span className="text-foreground">{item.name}</span>
               </div>
             </TableCell>
-            <TableCell className="capitalize">{item.type}</TableCell>
-            <TableCell>{item.site}</TableCell>
+            <TableCell className="capitalize text-muted-foreground">{item.type}</TableCell>
+            <TableCell className="text-muted-foreground">{item.site}</TableCell>
             <TableCell>
               <StatusBadge status={item.status} />
             </TableCell>
-            <TableCell>{item.ip}</TableCell>
-            <TableCell>{item.lastMaintenance}</TableCell>
+            <TableCell className="font-mono text-sm text-muted-foreground">{item.ip}</TableCell>
+            <TableCell className="text-muted-foreground">{item.lastMaintenance}</TableCell>
             <TableCell className="text-right">
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-1">
                 <Link to={`/equipements/${item.id}`}>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" className="rounded-lg hover:bg-primary/10 hover:text-primary">
                     <ArrowRight className="w-4 h-4" />
                   </Button>
                 </Link>
-                <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600">
+                <Button variant="ghost" size="icon" className="rounded-lg hover:bg-danger/10 hover:text-danger">
                   <Trash2Icon className="w-4 h-4" />
                 </Button>
               </div>

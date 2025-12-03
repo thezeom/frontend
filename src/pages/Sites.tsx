@@ -1,23 +1,17 @@
+
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { PlusCircle, RefreshCcw, ArrowRight, Trash2Icon, Search, Filter, UserIcon } from "lucide-react";
+import { PlusCircle, RefreshCcw, ArrowRight, Trash2Icon, Search, Filter, UserIcon, MapPin, Monitor } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getSites, createSite, deleteSite } from "@/lib/api";
 import { Site } from "@/types/database";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/AuthProvider";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
@@ -32,9 +26,6 @@ const Sites = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [isNewSiteDialogOpen, setIsNewSiteDialogOpen] = useState(false);
-  const [newSiteName, setNewSiteName] = useState("");
-  const [newSiteAddress, setNewSiteAddress] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { logout } = useAuth();
@@ -51,28 +42,6 @@ const Sites = () => {
         });
         console.error("Error fetching sites:", error);
       },
-    },
-  });
-
-  const createSiteMutation = useMutation({
-    mutationFn: (site: Omit<Site, 'id' | 'created_at' | 'updated_at'>) => createSite(site),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sites'] });
-      toast({
-        title: "Succès",
-        description: "Le site a été créé avec succès.",
-      });
-      setIsNewSiteDialogOpen(false);
-      setNewSiteName("");
-      setNewSiteAddress("");
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Erreur",
-        description: "Impossible de créer le site. Veuillez réessayer.",
-        variant: "destructive",
-      });
-      console.error("Error creating site:", error);
     },
   });
 
@@ -97,24 +66,6 @@ const Sites = () => {
     },
   });
 
-  const handleCreateSite = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newSiteName || !newSiteAddress) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez remplir tous les champs.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    createSiteMutation.mutate({
-      name: newSiteName,
-      address: newSiteAddress,
-      status: 'pending' as const
-    });
-  };
-
   const handleDeleteSite = async (id: string) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce site ?")) {
       deleteSiteMutation.mutate(id);
@@ -123,12 +74,10 @@ const Sites = () => {
 
   const handleAssociateSite = async (id: string) => {
     try {
-      // Simulation d'assignation locale
       toast({
         title: "Succès",
         description: "Le site a été associé avec succès.",
       });
-      
       queryClient.invalidateQueries({ queryKey: ['sites'] });
     } catch (error: any) {
       toast({
@@ -165,31 +114,32 @@ const Sites = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between animate-fade-in">
         <div>
-          <h1 className="text-2xl font-bold">Sites clients</h1>
-          <p className="text-muted-foreground">
-            Gestion et surveillance des sites
+          <h1 className="text-2xl font-bold text-foreground">Sites Clients</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Gestion et surveillance de vos sites
           </p>
         </div>
         <div className="flex items-center gap-4">
           <Button 
-            className="bg-[#0e3175] hover:bg-[#0e3175]/90"
+            className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all duration-300 hover:-translate-y-0.5"
             onClick={() => navigate('/sites/detected')}
           >
             <PlusCircle className="w-4 h-4 mr-2" />
             Nouveau site
           </Button>
-          <span className="text-sm">Global Secure SARL</span>
+          <span className="text-sm font-medium text-muted-foreground">Global Secure SARL</span>
           <DropdownMenu>
             <DropdownMenuTrigger className="focus:outline-none">
-              <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors">
-                <UserIcon className="w-4 h-4 text-muted-foreground" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center hover:shadow-lg hover:shadow-primary/20 transition-all duration-300">
+                <UserIcon className="w-5 h-5 text-primary-foreground" />
               </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600 focus:bg-red-50">
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={handleLogout} className="text-danger focus:text-danger focus:bg-danger/10">
                 <LogOut className="w-4 h-4 mr-2" />
                 Se déconnecter
               </DropdownMenuItem>
@@ -198,109 +148,125 @@ const Sites = () => {
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input 
-            placeholder="Rechercher un site..." 
-            className="pl-9"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      {/* Filters */}
+      <Card className="p-4 card-modern animate-fade-in-up" style={{ animationDelay: '50ms' }}>
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Input 
+              placeholder="Rechercher un site..." 
+              className="pl-10 bg-background border-border/50 focus:border-primary rounded-xl"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="relative">
+            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 z-10" />
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="pl-10 min-w-[180px] bg-background border-border/50 rounded-xl">
+                <SelectValue placeholder="Tous les statuts" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les statuts</SelectItem>
+                <SelectItem value="online">En ligne</SelectItem>
+                <SelectItem value="offline">Hors ligne</SelectItem>
+                <SelectItem value="warning">Attention</SelectItem>
+                <SelectItem value="pending">Nouveaux sites</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <Button 
+            variant="outline" 
+            size="icon" 
+            className="ml-auto rounded-xl border-border/50 hover:bg-muted"
+            onClick={() => refetch()}
+            disabled={isLoading}
+          >
+            <RefreshCcw className={cn("w-4 h-4", isLoading && "animate-spin")} />
+          </Button>
         </div>
-        <div className="relative">
-          <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 z-10" />
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="pl-9 min-w-[180px]">
-              <SelectValue placeholder="Tous les statuts" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tous les statuts</SelectItem>
-              <SelectItem value="online">En ligne</SelectItem>
-              <SelectItem value="offline">Hors ligne</SelectItem>
-              <SelectItem value="warning">Attention</SelectItem>
-              <SelectItem value="pending">Nouveaux sites</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <Button 
-          variant="outline" 
-          size="icon" 
-          className="ml-auto"
-          onClick={() => refetch()}
-          disabled={isLoading}
-        >
-          <RefreshCcw className={cn("w-4 h-4", isLoading && "animate-spin")} />
-        </Button>
-      </div>
+      </Card>
 
-      <div className="grid gap-4">
+      {/* Sites Grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 stagger-children">
         {isLoading ? (
-          <Card className="p-4">
-            <div className="animate-pulse flex space-x-4">
-              <div className="flex-1 space-y-4 py-1">
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                <div className="space-y-2">
-                  <div className="h-4 bg-gray-200 rounded"></div>
-                  <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+          Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i} className="p-5 card-modern">
+              <div className="animate-pulse space-y-4">
+                <div className="h-4 bg-muted rounded-lg w-3/4"></div>
+                <div className="h-3 bg-muted rounded-lg w-1/2"></div>
+                <div className="flex gap-2">
+                  <div className="h-6 w-16 bg-muted rounded-full"></div>
                 </div>
               </div>
-            </div>
-          </Card>
+            </Card>
+          ))
         ) : filteredSites.length === 0 ? (
-          <Card className="p-8 text-center">
-            <p className="text-muted-foreground">Aucun site trouvé</p>
+          <Card className="col-span-full p-12 text-center card-modern">
+            <div className="text-muted-foreground">
+              <MapPin className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium">Aucun site trouvé</p>
+              <p className="text-sm mt-1">Ajoutez votre premier site pour commencer</p>
+            </div>
           </Card>
         ) : (
           filteredSites.map((site) => (
-            <Card key={site.id} className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold">{site.name}</h3>
-                  <p className="text-sm text-muted-foreground">{site.address}</p>
+            <Card key={site.id} className="p-5 card-interactive group">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{site.name}</h3>
+                  <div className="flex items-center gap-1 mt-1 text-sm text-muted-foreground">
+                    <MapPin className="w-3 h-3" />
+                    <span>{site.address}</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className={cn(
-                    "px-2 py-1 rounded-full text-xs font-medium",
-                    site.status === 'online' && "bg-green-100 text-green-800",
-                    site.status === 'offline' && "bg-red-100 text-red-800",
-                    site.status === 'warning' && "bg-yellow-100 text-yellow-800",
-                    site.status === 'pending' && "bg-blue-100 text-blue-800"
-                  )}>
-                    {site.status === 'online' && "En ligne"}
-                    {site.status === 'offline' && "Hors ligne"}
-                    {site.status === 'warning' && "Attention"}
-                    {site.status === 'pending' && "Nouveau site détecté"}
-                  </div>
-                  <div className="flex gap-2">
-                    {site.status === 'pending' ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleAssociateSite(site.id)}
-                        className="text-blue-500 hover:text-blue-600"
-                      >
-                        Associer
-                      </Button>
-                    ) : (
-                      <>
-                        <Link to={`/sites/${site.id}/equipment`}>
-                          <Button variant="ghost" size="icon">
-                            <ArrowRight className="w-4 h-4" />
-                          </Button>
-                        </Link>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-red-500 hover:text-red-600"
-                          onClick={() => handleDeleteSite(site.id)}
-                          disabled={deleteSiteMutation.isPending}
-                        >
-                          <Trash2Icon className="w-4 h-4" />
+                <div className={cn(
+                  "px-3 py-1 rounded-full text-xs font-semibold",
+                  site.status === 'online' && "bg-success/10 text-success",
+                  site.status === 'offline' && "bg-danger/10 text-danger",
+                  site.status === 'warning' && "bg-warning/10 text-warning",
+                  site.status === 'pending' && "bg-primary/10 text-primary"
+                )}>
+                  {site.status === 'online' && "En ligne"}
+                  {site.status === 'offline' && "Hors ligne"}
+                  {site.status === 'warning' && "Attention"}
+                  {site.status === 'pending' && "Nouveau"}
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between pt-4 border-t border-border/50">
+                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                  <Monitor className="w-4 h-4" />
+                  <span>12 équipements</span>
+                </div>
+                <div className="flex gap-1">
+                  {site.status === 'pending' ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAssociateSite(site.id)}
+                      className="text-primary hover:text-primary hover:bg-primary/10 rounded-lg"
+                    >
+                      Associer
+                    </Button>
+                  ) : (
+                    <>
+                      <Link to={`/sites/${site.id}/equipment`}>
+                        <Button variant="ghost" size="icon" className="rounded-lg hover:bg-primary/10 hover:text-primary">
+                          <ArrowRight className="w-4 h-4" />
                         </Button>
-                      </>
-                    )}
-                  </div>
+                      </Link>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="rounded-lg hover:bg-danger/10 hover:text-danger"
+                        onClick={() => handleDeleteSite(site.id)}
+                        disabled={deleteSiteMutation.isPending}
+                      >
+                        <Trash2Icon className="w-4 h-4" />
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </Card>

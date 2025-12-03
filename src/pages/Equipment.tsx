@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { EquipmentFilters } from "@/components/equipment/EquipmentFilters";
 import { EquipmentTable } from "@/components/equipment/EquipmentTable";
-import { UserIcon, LogOut } from "lucide-react";
+import { UserIcon, LogOut, Monitor, Wifi, Server, Router } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -144,25 +145,43 @@ const Equipment = () => {
     return matchesSearch && matchesType && matchesSite && matchesStatus;
   });
 
+  const stats = [
+    { label: "Total", value: equipment.length, icon: Monitor, color: "primary" },
+    { label: "En ligne", value: equipment.filter(e => e.status === 'online').length, icon: Wifi, color: "success" },
+    { label: "Hors ligne", value: equipment.filter(e => e.status === 'offline').length, icon: Server, color: "danger" },
+    { label: "Attention", value: equipment.filter(e => e.status === 'warning').length, icon: Router, color: "warning" },
+  ];
+
+  const getColorClasses = (color: string) => {
+    const colors: Record<string, string> = {
+      primary: "bg-primary/10 text-primary",
+      success: "bg-success/10 text-success", 
+      danger: "bg-danger/10 text-danger",
+      warning: "bg-warning/10 text-warning",
+    };
+    return colors[color] || colors.primary;
+  };
+
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between animate-fade-in">
         <div>
-          <h1 className="text-2xl font-bold">Équipements</h1>
-          <p className="text-muted-foreground">
-            Gestion et surveillance des équipements réseau
+          <h1 className="text-2xl font-bold text-foreground">Équipements</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Gestion et surveillance de tous vos équipements réseau
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm">Global Secure SARL</span>
+        <div className="flex items-center gap-4">
+          <span className="text-sm font-medium text-muted-foreground">Global Secure SARL</span>
           <DropdownMenu>
             <DropdownMenuTrigger className="focus:outline-none">
-              <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors">
-                <UserIcon className="w-4 h-4 text-muted-foreground" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center hover:shadow-lg hover:shadow-primary/20 transition-all duration-300">
+                <UserIcon className="w-5 h-5 text-primary-foreground" />
               </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600 focus:bg-red-50">
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={handleLogout} className="text-danger focus:text-danger focus:bg-danger/10">
                 <LogOut className="w-4 h-4 mr-2" />
                 Se déconnecter
               </DropdownMenuItem>
@@ -171,18 +190,45 @@ const Equipment = () => {
         </div>
       </div>
 
-      <EquipmentFilters 
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        typeFilter={typeFilter}
-        onTypeFilterChange={setTypeFilter}
-        siteFilter={siteFilter}
-        onSiteFilterChange={setSiteFilter}
-        statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
-      />
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 stagger-children">
+        {stats.map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <Card key={stat.label} className="p-4 card-interactive group">
+              <div className="flex items-center gap-3">
+                <div className={cn(
+                  "w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110",
+                  getColorClasses(stat.color)
+                )}>
+                  <Icon className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                  <p className="text-xs text-muted-foreground">{stat.label}</p>
+                </div>
+              </div>
+            </Card>
+          );
+        })}
+      </div>
 
-      <Card className="glass">
+      {/* Filters */}
+      <Card className="p-4 card-modern animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+        <EquipmentFilters 
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          typeFilter={typeFilter}
+          onTypeFilterChange={setTypeFilter}
+          siteFilter={siteFilter}
+          onSiteFilterChange={setSiteFilter}
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
+        />
+      </Card>
+
+      {/* Table */}
+      <Card className="card-modern overflow-hidden animate-fade-in-up" style={{ animationDelay: '150ms' }}>
         <EquipmentTable equipment={filteredEquipment} />
       </Card>
     </div>
